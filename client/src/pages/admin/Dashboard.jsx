@@ -1,6 +1,5 @@
-import { ChartLineIcon, CircleDollarSign, PlayCircleIcon, StarIcon, UsersIcon } from "lucide-react";
+import { ChartLineIcon, CircleDollarSign, CircleDollarSignIcon, PlayCircleIcon, StarIcon, UsersIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { dummyDashboardData } from "../../../assets/assets";
 import { Loading } from "../../components/Loading";
 import { Title } from "../../components/admin/Title";
 import { BlurCircle } from "../../components/BlurCircle";
@@ -19,7 +18,7 @@ export const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const dashboardCards = [
         { title: "Total Bookings", value: dashboard.totalBookings || "0", icon: ChartLineIcon },
-        { title: "Total Revenue", value: dashboard.totalRevenue || "0", icon: CircleDollarSign },
+        { title: "Total Revenue", value: currency + dashboard.totalRevenue || "0", icon: CircleDollarSignIcon },
         { title: "Active Shows", value: dashboard.activeShows.length || "0", icon: PlayCircleIcon },
         { title: "Total Users", value: dashboard.totalUser || "0", icon: UsersIcon },
     ]
@@ -33,7 +32,7 @@ export const Dashboard = () => {
                 toast.error(data.message)
             }
         } catch (error) {
-            toast.error("Error fetching dashboard data");
+            toast.error("Error fetching dashboard data",error);
             setLoading(false);
         }
     }
@@ -42,9 +41,12 @@ export const Dashboard = () => {
             fetchDashboardData();
         }
     }, [user]);
+
     return !loading ? (
         <>
             <Title text1="Admin" text2="Dashboard" />
+            <div className="relative flex flex-wrap gap-4 w-full">
+                <BlurCircle top="-100px" left="0" />
             <div className="relative flex flex-wrap gap-4 w-full">
                 {dashboardCards.map((card, index) => (
                     <div key={index} className="flex items-center justify-between px-4 py-3 bg-primary/10 border border-primary/20 rounded-md max-w-50 w-full">
@@ -56,11 +58,12 @@ export const Dashboard = () => {
                     </div>
                 ))}
             </div>
+            </div>
             <p className="mt-10 text-lg font-medium">Active Shows</p>
             <div className="relative flex flex-wrap gap-6 mt-4 max-w-5xl">
                 <BlurCircle top="100px" left="-10%" />
                 {dashboard.activeShows.map((show) => (
-                    <div key={show._id} className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/20 hover:-translate-y-1 transition duration-300">
+                    <div key={show._id} className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300">
                         <img src={image_base_url + show.movie.poster_path} alt="" className="h-60 w-full object-cover" />
                         <p className="font-medium p-2 truncate">{show.movie.title}</p>
                         <div className="flex items-center justify-between px-2">

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { dummyShowsData } from "../../../assets/assets";
 import { Loading } from "../../components/Loading";
 import { Title } from "../../components/admin/Title";
-import { StarIcon, CheckIcon, XIcon } from "lucide-react";
+import { StarIcon, CheckIcon, DeleteIcon } from "lucide-react";
 import { kConverter } from "../../lib/kConverter";
 import { useAppContext } from "../../context/Appcontext";
 import toast from "react-hot-toast";
@@ -17,13 +16,21 @@ export const AddShows = () => {
     const [addingShow, setAddingShow] = useState(false);
     const fetchNowPlayingMovies = async () => {
         try {
-            const { data } = await axios.get('/api/show/now-playing', { headers: { Authorization: `Bearer ${await getToken()}` } })
+            const { data } = await axios.get('/api/show/now-playing', { 
+                headers: { Authorization: `Bearer ${await getToken()}` },
+                timeout: 30000
+            })
             if (data.success) {
-                setNowPlayMovies(data.movies)
+                setNowPlayMovies(data.movies || [])
+            } else {
+                console.error('Failed to fetch movies:', data.message);
+                toast.error(data.message || 'Failed to fetch movies. Please try again.');
+                setNowPlayMovies([]);
             }
         } catch (error) {
             console.error('Error fetching movies:', error);
-
+            toast.error('Network error: Unable to fetch movies. Please check your connection and try again.');
+            setNowPlayMovies([]);
         }
     };
     const handleDateTimeAdd = () => {
@@ -46,15 +53,21 @@ export const AddShows = () => {
                 return rest;
             }
             return {
-                ...prev, [date]: filteredTimes,
+                ...prev, 
+                [date]: filteredTimes,
             };
         });
     };
     const handleSubmit = async () => {
         try {
             setAddingShow(true)
-            if (!selectMovie || Object.keys(dateTimeSelection).length === 0 || !showPrice) return toast.error('Missing fields');
+            if (!selectMovie || Object.keys(dateTimeSelection).length === 0 || !showPrice) {
+                toast.error('Missing fields: Please select a movie, add date/time, and set price');
+                setAddingShow(false);
+                return;
+            }
             const showsInput = Object.entries(dateTimeSelection).map(([date, time]) => ({ date, time }));
+            console.log('Submitting shows:', { movieId: selectMovie, showsInput, showPrice: Number(showPrice) });
             const payload = {
                 movieId: selectMovie,
                 showsInput,
@@ -68,29 +81,48 @@ export const AddShows = () => {
                 setSelectMovie(null)
                 setDateTimeSelection({})
                 setShowPrice("")
+                setDateTimeInput("")
             }
             else {
-                toast.error(data.message)
+                toast.error(data.message || 'Failed to add show')
             }
         } catch (error) {
             console.error("Submission error:", error);
-            toast.error('An error occurred.Please try again.')
+            const errorMessage = error.response?.data?.message || error.message || 'An error occurred. Please try again.';
+            toast.error(errorMessage);
+        } finally {
+            setAddingShow(false)
         }
-        setAddingShow(false)
     }
     useEffect(() => {
         if (user) {
             fetchNowPlayingMovies();
         }
     }, [user]);
+    if (nowPlayMovies.length === 0 && user) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+                <Title text1="Add" text2="Shows" />
+                <p className="mt-10 text-lg font-medium text-gray-400">No movies available</p>
+                <p className="mt-2 text-sm text-gray-500">Unable to fetch now playing movies. Please check your connection and try again.</p>
+                <button 
+                    onClick={fetchNowPlayingMovies} 
+                    className="mt-4 bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition-all cursor-pointer"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
     return nowPlayMovies.length > 0 ? (
         <>
             <Title text1="Add" text2="Shows" />
-            <p className="mt-10 text-lg font-medium"></p>
+            <p className="mt-10 text-lg font-medium">Now Playing Movies</p>
             <div className="overflow-x-auto pb-4">
                 <div className="group flex flex-wrap gap-4 mt-4 w-max">
                     {nowPlayMovies.map((movie) => (
-                        <div key={movie._id} className={`relative max-w-40 cursor-pointer group-hover:not-hover:opacity-40 hover:-translate-y-1 transition duration-300`} onClick={() => setSelectMovie(movie._id)}>
+                        <div key={movie.id} className={`relative max-w-40 cursor-pointer group-hover:not-hover:opacity-40 hover:-translate-y-1 transition duration-300`} onClick={() => setSelectMovie(movie.id)}>
                             <div className="relative rounded-lg overflow-hidden">
                                 <img src={image_base_url + movie.poster_path} alt="" className="w-full object-cover brightness-90" />
                                 <div className="text-sm flex items-center justify-between p-2 bg-black/70 w-full absolute bottom-0 left-0">
@@ -101,7 +133,7 @@ export const AddShows = () => {
                                     <p className="text-gray-300">{kConverter(movie.vote_count)}Votes</p>
                                 </div>
                             </div>
-                            {selectMovie === movie._id && (
+                            {selectMovie === movie.id && (
                                 <div className="absolute top-2 right-2 flex items-center justify-center bg-primary h-6 w-6 rounded">
                                     <CheckIcon className="w-4 h-4 text-white" strokeWidth={2.5} />
                                 </div>
@@ -113,7 +145,7 @@ export const AddShows = () => {
                 </div>
             </div>
             <div className="mt-8">
-                <label className="inline-flex items-center gap-2 border border-gray-600 px-3 py-2 rounded-md">Show Price</label>
+                <label className="block text-sm font-medium mb-2">Show Price</label>
                 <div className="inline-flex items-center gap-2 border border-gray-600 px-3 py-2 rounded-md">
                     <p className="text-gray-400 text-sm">{currency}</p>
                     <input min={0} type="number" value={showPrice} onChange={(e) => setShowPrice(e.target.value)} placeholder="Enter show price" className="outline-none" />
@@ -137,7 +169,7 @@ export const AddShows = () => {
                                     {times.map((time) => (
                                         <div key={time} className="border border-primary px-2 py-1 flex items-center rounded">
                                             <span>{time}</span>
-                                            <XIcon onClick={() => handleRemoveTime(date, time)} width={15} className="ml-2 text-red-500 hover:text-red-700 cursor-pointer" />
+                                            <DeleteIcon onClick={() => handleRemoveTime(date, time)} width={15} className="ml-2 text-red-500 hover:text-red-700 cursor-pointer" />
                                         </div>
                                     ))}
                                 </div>

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
 
@@ -32,20 +33,19 @@ export const AppProvider = ({ children }) => {
 
     const fetchShows = async () => {
         try {
-            const {data} = await axios.get('/api/show/all',{headers:{Authorization:`Bearer ${await getToken()}`}})
+            const { data } = await axios.get('/api/show/all', { headers: { Authorization: `Bearer ${await getToken()}` } })
             if (data.success) {
                 setShows(data.shows)
+            } else {
+            toast.error(data.message)
             }
         } catch (error) {
-            // Only log network errors if server is not running (development)
-            if (error.code !== 'ERR_NETWORK') {
-                console.error('Error fetching shows:', error);
-            }
+        console.error(error)
         }
     };
     const fetchFavoriteMovies = async () => {
         try {
-            const {data} = await axios.get('/api/user/favorites',{headers:{Authorization:`Bearer ${await getToken()}`}})
+            const { data } = await axios.get('/api/user/favorites', { headers: { Authorization: `Bearer ${await getToken()}` } })
             if (data.success) {
                 setFavoriteMovies(data.movies)
             }
@@ -53,7 +53,7 @@ export const AppProvider = ({ children }) => {
             console.error(error);
         }
     }
-    
+
 
     useEffect(() => {
         fetchShows();
@@ -64,7 +64,7 @@ export const AppProvider = ({ children }) => {
             fetchFavoriteMovies()
         }
     }, [user]);
-    const value = { axios,fetchIsAdmin,user,getToken,navigate,isAdmin,shows,favoriteMovies,fetchFavoriteMovies,image_base_url}
+    const value = { axios, fetchIsAdmin, user, getToken, navigate, isAdmin, shows, favoriteMovies, fetchFavoriteMovies, image_base_url }
     return (
         <AppContext.Provider value={value}>
             {children}

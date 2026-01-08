@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { dummyShowsData } from "../../../assets/assets";
 import { Loading } from "../../components/Loading";
 import { Title } from "../../components/admin/Title";
 import { dateFormat } from "../../lib/dateFormat";
@@ -33,7 +32,7 @@ export const ListShows = () => {
     return !loading ? (
         <div>
             <Title text1="List" text2="Shows" />
-            <div className="max-w-4xl mt-6 overflow-auto">
+            <div className="max-w-4xl mt-6 overflow-x-auto">
                 <table className="w-full border-collapse rounded-md overflow-hidden text-nowrap">
                     <thead>
                         <tr className="bg-primary/20 text-left text-white">

@@ -19,7 +19,7 @@ export const SeatLayout = () => {
     const getShow = async () => {
         try {
             const { data } = await axios.get(`/api/show/${id}`)
-            if (data.success && data.movie) {
+            if (data.success) {
                 setShow({ movie: data.movie, dateTime: data.dateTime })
             } else {
                 toast.error("Show not found")
@@ -31,10 +31,10 @@ export const SeatLayout = () => {
     }
     const handleSeatClick = (seatId) => {
         if (!selectedTime) {
-            return toast.error("Please Select time First")
+            return toast("Please Select time First")
         }
         if (!selectedSeats.includes(seatId) && selectedSeats.length > 4) {
-            return toast.error("You can select only 5 seats")
+            return toast("You can select only 5 seats")
         }
         if (occupiedSeats.includes(seatId)) {
             return toast('This seat is already booked')
@@ -93,8 +93,8 @@ export const SeatLayout = () => {
             getOccupiedSeats()
         }
     }, [selectedTime])
-    return show && show.dateTime && show.dateTime[date] ? (
-        <div className="flex flex-col md:flex-row px-6 md:px-16 lg:px-40 py-30">
+    return show ? (
+        <div className="flex flex-col md:flex-row px-6 md:px-16 lg:px-40 py-30 md:pt-50">
             <div className="w-60 bg-primary/10 border border-primary/20 rounded-lg py-10 h-max md:sticky md:top-30">
                 <p className="text-lg font-semibold px-6">Available Timings</p>
                 <div className="mt-5 space-y-1">
@@ -108,8 +108,8 @@ export const SeatLayout = () => {
             </div>
             <div className="relative flex-1 flex flex-col items-center max-md:mt-16">
                 <BlurCircle top="-100px" left="100px" />
-                <BlurCircle bottom="0px" right="0px" />
-                <h1 className="text-2xl font-semibold mb-4">Select Your Seats</h1>
+                <BlurCircle bottom="0" right="0" />
+                <h1 className="text-2xl font-semibold mb-4">Select Your Seat</h1>
                 <img src={assets.screenImage} alt="screen" />
                 <p className="text-gray-400 text-sm mb-6">SCREEN SIDE</p>
                 <div className="flex flex-col items-center mt-10 text-xs text-gray-300">

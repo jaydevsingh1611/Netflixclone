@@ -16,7 +16,7 @@ export const  MovieCard  = ({movie}) => {
         <button onClick={() => {navigate(`/movies/${movie._id}`); scrollTo(0,0)}} className="px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer">
         BuyTickets
         </button>
-        <p>
+        <p className="flex items-center gap-1 text-sm text-gray-400 mt-1 pr-1">
         <StarIcon className="w-4 h-4 text-pink-50 fill-primary"/>
         {movie.vote_average.toFixed(1)}
         </p>

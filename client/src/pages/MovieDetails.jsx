@@ -16,8 +16,8 @@ export const MovieDetails = () => {
     const getShow = async () => {
         try {
             const { data } = await axios.get(`/api/show/${id}`)
-            if (data.success && data.movie) {
-                setShow({ movie: data.movie, dateTime: data.dateTime })
+            if (data.success ) {
+                setShow(data)
             } else {
                 toast.error("Movie not found")
             }
@@ -36,13 +36,13 @@ export const MovieDetails = () => {
                 toast.success(data.message)
             }
         } catch (error) {
-            console.error(error);
+            console.log(error);
         }
     }
     useEffect(() => {
         getShow()
     }, [id])
-    return show && show.movie ? (
+    return show  ? (
         <div className="px-6 md:px-16 lg:px-40 pt-30 md:pt-50">
             <div className="flex flex-col md:flex-row gap-8 max-w-6xl mx-auto">
                 <img src={image_base_url + show.movie.poster_path} alt="" className="max-md:mx-auto rounded-xl h-104 max-w-70 object-cover" />
@@ -84,8 +84,8 @@ export const MovieDetails = () => {
             <DateSelect dateTime={show.dateTime} id={id} />
             <p className="text-lg font-medium mt-20 mb-8">You may Also Like</p>
             <div className="flex flex-wrap max-sm:justify-center gap-8">
-                {shows.slice(0, 4).map(movie => (
-                    <MovieCard key={movie._id} movie={movie} />
+                {shows.slice(0, 4).map((movie,index) => (
+                    <MovieCard key={index} movie={movie} />
                 ))}
             </div>
             <div className="flex justify-center mt-20">
